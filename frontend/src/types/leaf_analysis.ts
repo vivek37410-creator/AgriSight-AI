@@ -1,0 +1,31 @@
+export interface LeafAnalysis {
+  id: number
+  user_id: number
+  farm_id?: number
+  image_url?: string
+  crop?: string
+  crop_confidence?: number
+  condition?: string
+  disease_confidence?: number
+  severity?: string
+  health_status?: string
+  symptoms?: string
+  ndvi?: number
+  ndmi?: number
+  ndwi?: number
+  temperature?: number
+  humidity?: number
+  rainfall?: number
+  risk_score?: number
+  risk_level?: string
+  model_version?: string
+  crop_model_version?: string
+  recommendation?: string
+  recommendation_source?: string
+  status: string
+  error_message?: string
+  created_at: string
+  latitude?: number
+  longitude?: number
+  weather_source?: string
+}

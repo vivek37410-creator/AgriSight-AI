@@ -1,0 +1,52 @@
+# Kilo config
+.kilo/
+.playwright-mcp/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+uploads/
+static/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Excel knowledge base (large file - optional)
+*.xlsx
+
+# Testing
+.pytest_cache/
+.coverage
+
+# Misc
+*.log
+*.tmp
+*.temp
+
+photos/

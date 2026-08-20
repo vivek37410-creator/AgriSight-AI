@@ -1,0 +1,501 @@
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+import os
+
+EXCEL_PATH = os.path.join(os.path.dirname(__file__), "..", "recommendations.xlsx")
+
+HEADER_FILL = PatternFill(start_color="1B5E20", end_color="1B5E20", fill_type="solid")
+HEADER_FONT = Font(color="FFFFFF", bold=True, size=11)
+ALT_FILL = PatternFill(start_color="F1F8E9", end_color="F1F8E9", fill_type="solid")
+THIN_BORDER = Border(
+    left=Side(style='thin', color='E0E0E0'),
+    right=Side(style='thin', color='E0E0E0'),
+    top=Side(style='thin', color='E0E0E0'),
+    bottom=Side(style='thin', color='E0E0E0'),
+)
+
+
+def style_header(ws, cols):
+    for col in range(1, cols + 1):
+        cell = ws.cell(row=1, column=col)
+        cell.font = HEADER_FONT
+        cell.fill = HEADER_FILL
+        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        cell.border = THIN_BORDER
+
+
+def auto_width(ws):
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            try:
+                if cell.value:
+                    max_len = max(max_len, len(str(cell.value)))
+            except Exception:
+                pass
+        ws.column_dimensions[col_letter].width = min(max(max_len + 2, 12), 50)
+
+
+def add_sheet_data(ws, headers, rows):
+    ws.append(headers)
+    style_header(ws, len(headers))
+    for i, row in enumerate(rows, start=2):
+        ws.append(row)
+        if i % 2 == 0:
+            for col in range(1, len(headers) + 1):
+                ws.cell(row=i, column=col).fill = ALT_FILL
+        for col in range(1, len(headers) + 1):
+            ws.cell(row=i, column=col).border = THIN_BORDER
+            ws.cell(row=i, column=col).alignment = Alignment(vertical='top', wrap_text=True)
+    auto_width(ws)
+
+
+wb = openpyxl.Workbook()
+wb.remove(wb.active)
+
+# Sheet 1: Plants
+ws_plants = wb.create_sheet("Plants")
+plants_headers = [
+    "Plant ID", "Plant Name", "Scientific Name", "Crop Category",
+    "Description", "Suitable Soil", "Temperature Range", "Water Requirement",
+    "Growing Season", "Suitable Conditions", "Common Diseases", "Common Pests"
+]
+plants_data = [
+    ["P001", "Pigeon Pea", "Cajanus cajan", "Legume",
+     "Drought-resistant legume widely grown in semi-arid tropics.",
+     "Red soil, Black soil, Loamy", "20-35°C", "Moderate (300-600mm annual)",
+     "Kharif (June-October)", "Well-drained soil, full sun",
+     "Yellow Mosaic Disease, Wilt, Cercospora Leaf Spot", "Aphids, Pod borer, Leaf folder"],
+    ["P002", "Cotton", "Gossypium hirsutum", "Fiber crop",
+     "Major fiber crop requiring warm climate and black soil.",
+     "Black soil, Deep alluvial", "21-30°C", "High (700-1300mm annual)",
+     "Kharif (April-November)", "Well-drained fertile soil, warm sunny days",
+     "Boll Rot, Bacterial Blight, Alternaria Leaf Spot", "Bollworm, Aphids, Whitefly"],
+    ["P003", "Wheat", "Triticum aestivum", "Cereal grain",
+     "Staple cereal grain grown in temperate and subtropical regions.",
+     "Loamy, Clay loam, Alluvial", "10-25°C", "Moderate (450-650mm annual)",
+     "Rabi (October-March)", "Cool weather, well-drained soil",
+     "Rust, Powdery Mildew, Smut", "Aphids, Armyworm, Termites"],
+    ["P004", "Rice", "Oryza sativa", "Cereal grain",
+     "Staple food crop requiring flooded or moist conditions.",
+     "Alluvial, Clay, Loamy", "20-35°C", "Very High (1000-2000mm annual)",
+     "Kharif (June-September)", "Standing water, fertile soil, high humidity",
+     "Blast, Brown Spot, Sheath Blight", "Brown Planthopper, Stem Borer, Leaf Folder"],
+    ["P005", "Maize", "Zea mays", "Cereal grain",
+     "Versatile cereal crop used for food, feed, and industrial purposes.",
+     "Loamy, Sandy loam, Alluvial", "18-30°C", "Moderate (500-800mm annual)",
+     "Kharif (June-September)", "Well-drained soil, warm days, moderate nights",
+     "Northern Corn Leaf Blight, Downy Mildew, Ear Rot", "Fall Armyworm, Corn Borer, Aphids"],
+    ["P006", "Soybean", "Glycine max", "Legume",
+     "High-protein legume used for oil, meal, and food products.",
+     "Loamy, Sandy loam, Clay", "20-30°C", "Moderate (450-700mm annual)",
+     "Kharif (June-September)", "Well-drained fertile soil, warm season",
+     "Frogeye Leaf Spot, Soybean Rust, Downy Mildew", "Soybean Aphid, Whitefly, Pod Borer"],
+    ["P007", "Sugarcane", "Saccharum officinarum", "Cash crop",
+     "Tall tropical grass grown for sugar and biofuel production.",
+     "Loamy, Alluvial, Black soil", "20-35°C", "High (1000-1500mm annual)",
+     "Annual (February planting)", "Rich fertile soil, warm humid climate",
+     "Red Rot, Smut, Sereh Disease", "Early Shoot Borer, Pyrilla, Whitefly"],
+    ["P008", "Tomato", "Solanum lycopersicum", "Vegetable crop",
+     "Popular vegetable crop grown worldwide for fresh consumption and processing.",
+     "Loamy, Sandy loam", "15-30°C", "Moderate (400-600mm annual)",
+     "Year-round (protected cultivation)", "Well-drained soil, full sun, moderate humidity",
+     "Early Blight, Late Blight, Fusarium Wilt", "Whitefly, Fruit Borer, Leaf Miner"],
+    ["P009", "Groundnut", "Arachis hypogaea", "Legume",
+     "Oilseed legume grown for edible oil and protein-rich kernels.",
+     "Sandy loam, Loamy, Red soil", "20-30°C", "Moderate (500-700mm annual)",
+     "Kharif (June-September)", "Well-drained light soil, warm climate",
+     "Late Leaf Spot, Rust, Bud Necrosis", "Aphids, Jassids, White grub"],
+    ["P010", "Chickpea", "Cicer arietinum", "Legume",
+     "Cool-season legume rich in protein, grown as Rabi crop.",
+     "Sandy loam, Loamy", "15-25°C", "Low to Moderate (300-400mm annual)",
+     "Rabi (October-November)", "Cool dry weather, well-drained soil",
+     "Wilt, Blight, Ascochyta Blight", "Pod Borer, Cutworm, Aphids"],
+]
+add_sheet_data(ws_plants, plants_headers, plants_data)
+
+# Sheet 2: Diseases
+ws_diseases = wb.create_sheet("Diseases")
+diseases_headers = [
+    "Disease ID", "Plant Name", "Disease Name", "Symptoms",
+    "Causes", "Risk Factors", "Prevention", "Recommended Action", "Severity"
+]
+diseases_data = [
+    ["D001", "Pigeon Pea", "Yellow Mosaic Disease",
+     "Yellow mosaic patches on leaves, stunted growth, reduced yield.",
+     "Virus transmitted by whiteflies.",
+     "High whitefly population, warm humid weather, close planting.",
+     "Use virus-free seed, control whiteflies, remove infected plants.",
+     "Apply recommended insecticide for whitefly control. Remove and destroy infected plants. Use tolerant varieties.",
+     "MODERATE"],
+    ["D002", "Cotton", "Boll Rot",
+     "Rotting of cotton bolls, discoloration, premature boll opening.",
+     "Fungal infection during humid rainy conditions.",
+     "High humidity, dense canopy, delayed harvesting, rain during boll development.",
+     "Ensure proper spacing, timely harvesting, fungicide spray at boll stage.",
+     "Apply recommended fungicide. Improve field drainage. Harvest bolls promptly.",
+     "HIGH"],
+    ["D003", "Rice", "Blast",
+     "Diamond-shaped lesions on leaves, neck blast causes white or grayish neck.",
+     "Fungus Magnaporthe oryzae, favored by cool wet nights and high nitrogen.",
+     "High nitrogen fertilization, cool nights with dew, susceptible varieties.",
+     "Use resistant varieties, balanced nitrogen, avoid late planting.",
+     "Apply recommended fungicide. Avoid excess nitrogen. Ensure good field drainage.",
+     "HIGH"],
+    ["D004", "Wheat", "Rust",
+     "Orange or brown pustules on leaves and stems, premature ripening.",
+     "Fungal pathogens Puccinia spp., wind-dispersed spores.",
+     "Cool moist weather, susceptible varieties, dense sowing.",
+     "Grow resistant varieties, timely sowing, monitor regularly.",
+     "Apply recommended fungicide at early signs. Remove volunteer wheat. Use resistant varieties.",
+     "HIGH"],
+    ["D005", "Tomato", "Late Blight",
+     "Water-soaked spots on leaves, white fungal growth on undersides, fruit rot.",
+     "Oomycete Phytophthora infestans, thrives in cool moist conditions.",
+     "Cool wet weather, poor air circulation, overhead irrigation.",
+     "Use resistant varieties, avoid overhead irrigation, good air circulation.",
+     "Apply recommended fungicide immediately. Remove infected plants. Avoid wetting foliage.",
+     "HIGH"],
+    ["D006", "Groundnut", "Late Leaf Spot",
+     "Brown to dark spots on lower leaves, leaf defoliation.",
+     "Fungus Cercosporidium personatum, favored by humid conditions.",
+     "High humidity, dense canopy, susceptible varieties.",
+     "Use tolerant varieties, proper spacing, fungicide at peg initiation.",
+     "Apply recommended fungicide. Improve air circulation through proper spacing.",
+     "MODERATE"],
+    ["D007", "Sugarcane", "Red Rot",
+     "Red discoloration in stalk, external white patches, sour smell.",
+     "Fungus Colletotrichum falcatum, enters through wounds.",
+     "Warm humid weather, poor drainage, ratoon cropping.",
+     "Use resistant varieties, hot water treatment of setts, crop rotation.",
+     "Remove and destroy infected plants. Treat setts before planting. Avoid ratoon cropping.",
+     "HIGH"],
+    ["D008", "Maize", "Northern Corn Leaf Blight",
+     "Long cigar-shaped grayish lesions on leaves, leaf drying.",
+     "Fungus Exserohilum turcicum, spread by wind and rain.",
+     "High humidity, moderate temperatures, susceptible hybrids.",
+     "Grow resistant hybrids, crop rotation, residue management.",
+     "Apply recommended fungicide. Practice crop rotation. Remove infected debris.",
+     "MODERATE"],
+    ["D009", "Soybean", "Soybean Rust",
+     "Small reddish-brown pustules on leaf undersides, premature leaf drop.",
+     "Fungus Phakopsora pachyrhizi, wind-borne spores.",
+     "Warm humid conditions, susceptible varieties, continuous soybean.",
+     "Use resistant varieties, early planting, scout regularly.",
+     "Apply recommended fungicide at early detection. Monitor fields regularly after flowering.",
+     "HIGH"],
+    ["D010", "Chickpea", "Wilt",
+     "Yellowing and wilting of plants from base, brown vascular bundles.",
+     "Fungus Fusarium oxysporum, soil-borne pathogen.",
+     "High soil temperature, continuous chickpea, susceptible varieties.",
+     "Use resistant varieties, seed treatment, crop rotation.",
+     "Apply recommended fungicide seed treatment. Practice 3-4 year crop rotation. Use tolerant varieties.",
+     "MODERATE"],
+]
+add_sheet_data(ws_diseases, diseases_headers, diseases_data)
+
+# Sheet 3: Crop Soil
+ws_crop_soil = wb.create_sheet("Crop Soil")
+crop_soil_headers = ["Crop", "Soil Type", "Suitability", "Explanation", "Recommended Action"]
+crop_soil_data = [
+    ["Pigeon Pea", "Red Soil", "HIGH", "Red soil is ideal for pigeon pea with good drainage and moderate fertility.",
+     "No major amendments needed. Apply phosphorus if soil test shows deficiency."],
+    ["Pigeon Pea", "Black Soil", "HIGH", "Black soil retains moisture well, beneficial for pigeon pea during dry periods.",
+     "Ensure proper drainage. Apply organic matter to improve structure."],
+    ["Pigeon Pea", "Sandy Soil", "LOW", "Sandy soil drains too quickly and lacks nutrients for pigeon pea.",
+     "Add organic compost and consider raised beds. Mulch to retain moisture."],
+    ["Cotton", "Black Soil", "HIGH", "Black soil is the best for cotton with excellent water retention and fertility.",
+     "Apply balanced fertilizers. Ensure proper drainage to prevent waterlogging."],
+    ["Cotton", "Alluvial", "MODERATE", "Alluvial soil is good but may need more frequent irrigation.",
+     "Improve drainage. Apply potassium-rich fertilizer."],
+    ["Cotton", "Red Soil", "MODERATE", "Red soil can support cotton with proper amendments.",
+     "Add organic matter and phosphorus. Improve moisture retention."],
+    ["Rice", "Alluvial", "HIGH", "Alluvial soil is excellent for rice with high water retention and fertility.",
+     "Maintain proper water levels. Apply nitrogen in split doses."],
+    ["Rice", "Clay", "HIGH", "Clay soil holds water well, ideal for flooded rice cultivation.",
+     "Ensure proper puddling before transplanting. Apply zinc if deficient."],
+    ["Rice", "Red Soil", "LOW", "Red soil drains too fast for conventional rice cultivation.",
+     "Consider System of Rice Intensification (SRI) or use drought-tolerant varieties."],
+    ["Wheat", "Loamy", "HIGH", "Loamy soil provides ideal conditions for wheat root development.",
+     "Apply nitrogen in split doses. Ensure proper seed bed preparation."],
+    ["Wheat", "Alluvial", "HIGH", "Alluvial soil is highly suitable for wheat with good fertility.",
+     "Apply balanced NPK fertilizers. Ensure timely sowing."],
+    ["Wheat", "Sandy Loam", "MODERATE", "Sandy loam drains well but may need more frequent irrigation.",
+     "Apply organic matter. Use mulching to conserve moisture."],
+    ["Maize", "Loamy", "HIGH", "Loamy soil is ideal for maize with good drainage and fertility.",
+     "Apply nitrogen at planting and side-dress at knee-high stage."],
+    ["Maize", "Sandy Loam", "HIGH", "Sandy loam warms quickly in spring, good for early maize.",
+     "Apply organic matter. Mulch to conserve moisture during dry spells."],
+    ["Soybean", "Loamy", "HIGH", "Loamy soil with good organic matter supports soybean well.",
+     "Inoculate seeds with rhizobium. Apply phosphorus and potassium."],
+    ["Soybean", "Clay Loam", "HIGH", "Clay loam retains moisture well for soybean.",
+     "Ensure good drainage. Avoid waterlogging during germination."],
+    ["Sugarcane", "Loamy", "HIGH", "Loamy soil with good moisture retention is excellent for sugarcane.",
+     "Apply high potassium. Ensure consistent irrigation schedule."],
+    ["Sugarcane", "Alluvial", "HIGH", "Alluvial riverine soil is highly fertile for sugarcane.",
+     "Apply nitrogen in split doses. Ensure proper drainage."],
+    ["Groundnut", "Sandy Loam", "HIGH", "Sandy loam with loose texture is ideal for pod development.",
+     "Apply gypsum at pegging stage. Avoid waterlogging."],
+    ["Chickpea", "Sandy Loam", "HIGH", "Sandy loam with good drainage is ideal for chickpea.",
+     "Treat seeds with fungicide. Apply rhizobium inoculation."],
+]
+add_sheet_data(ws_crop_soil, crop_soil_headers, crop_soil_data)
+
+# Sheet 4: Weather Actions
+ws_weather = wb.create_sheet("Weather Actions")
+weather_headers = ["Crop", "Weather Condition", "Temperature Range", "Rainfall Condition", "Risk", "Recommended Action"]
+weather_data = [
+    ["Rice", "Heavy Rain", "20-30°C", ">50mm in 24hrs", "HIGH",
+     "Avoid irrigation. Drain excess water from fields. Monitor for waterlogging and disease."],
+    ["Rice", "Drought", "30-40°C", "<10mm for 7+ days", "HIGH",
+     "Maintain 5cm standing water. Alternate wetting and drying. Monitor soil moisture."],
+    ["Cotton", "Heavy Rain", "25-32°C", ">40mm in 24hrs", "MODERATE",
+     "Ensure field drainage. Avoid fertilizer application. Monitor for boll rot."],
+    ["Cotton", "High Temperature", ">35°C", "Low humidity", "HIGH",
+     "Increase irrigation frequency. Monitor for heat stress. Apply potassium spray if needed."],
+    ["Wheat", "Heat Wave", ">35°C", "Dry", "HIGH",
+     "Increase irrigation immediately. Monitor grain filling. Consider light irrigation at night."],
+    ["Wheat", "Frost Risk", "<5°C", "Clear skies", "MODERATE",
+     "Irrigate before expected frost. Use sprinklers for frost protection. Monitor young seedlings."],
+    ["Maize", "Drought", ">32°C", "<10mm for 5+ days", "HIGH",
+     "Apply irrigation at tasseling and grain filling stages. Mulch to conserve moisture."],
+    ["Maize", "Heavy Rain", "20-28°C", ">50mm in 24hrs", "MODERATE",
+     "Ensure drainage. Apply nitrogen top-dress after water recedes. Monitor for stalk rot."],
+    ["Soybean", "Heavy Rain", "22-30°C", ">40mm in 24hrs", "MODERATE",
+     "Improve drainage. Avoid field operations when wet. Monitor for fungal diseases."],
+    ["Soybean", "Drought", ">30°C", "<10mm for 7+ days", "MODERATE",
+     "Apply irrigation at flowering and pod filling. Use drought-tolerant varieties next season."],
+    ["Sugarcane", "Heavy Rain", "25-32°C", ">60mm in 24hrs", "MODERATE",
+     "Ensure proper drainage. Avoid ratoon cropping in waterlogged fields."],
+    ["Sugarcane", "High Temperature", ">38°C", "Low humidity", "HIGH",
+     "Increase irrigation. Trash the field to conserve soil moisture. Monitor for red rot."],
+    ["Groundnut", "Heavy Rain", "25-30°C", ">30mm in 24hrs", "HIGH",
+     "Ensure excellent drainage. Apply gypsum. Monitor for leaf spot diseases."],
+    ["Groundnut", "Drought", ">32°C", "<10mm for 5+ days", "MODERATE",
+     "Apply light irrigation at pegging stage. Mulch to conserve soil moisture."],
+    ["Chickpea", "Cold Wave", "<10°C", "No rain", "MODERATE",
+     "Irrigate before cold wave. Use sprinklers for frost protection. Monitor for wilt."],
+    ["Tomato", "Heavy Rain", "20-28°C", ">40mm in 24hrs", "HIGH",
+     "Provide support to prevent lodging. Apply fungicide preventively. Harvest ripe fruits immediately."],
+    ["Tomato", "High Temperature", ">35°C", "Low humidity", "HIGH",
+     "Provide partial shade. Increase irrigation. Mulch to keep roots cool."],
+    ["General", "Favorable", "18-30°C", "Moderate", "LOW",
+     "Continue regular farm operations. Good conditions for most crops."],
+]
+add_sheet_data(ws_weather, weather_headers, weather_data)
+
+# Sheet 5: City Crops
+ws_cities = wb.create_sheet("City Crops")
+cities_headers = ["City", "State", "Dominant Crop", "Crop Distribution", "Agricultural Information"]
+cities_data = [
+    ["Mumbai", "Maharashtra", "Vegetables",
+     "Vegetables 50%, Rice 25%, Pulses 15%, Other 10%",
+     "Mumbai's peri-urban areas focus on vegetables for city markets. Rice in wetlands. Limited agricultural land due to urbanization."],
+    ["Pune", "Maharashtra", "Sugarcane",
+     "Sugarcane 42%, Rice 21%, Wheat 16%, Vegetables 12%, Other 9%",
+     "Pune has varied agriculture with sugarcane in irrigated areas. Rice in river valleys. Wheat in winter. Growing vegetable cultivation around city."],
+    ["Nashik", "Maharashtra", "Grapes",
+     "Grapes 45%, Onion 20%, Wheat 15%, Vegetables 10%, Other 10%",
+     "Nashik is famous for grape vineyards. Moderate climate suitable for viticulture. Major onion producer for Maharashtra."],
+    ["Nagpur", "Maharashtra", "Orange",
+     "Orange 40%, Cotton 20%, Soybean 15%, Rice 10%, Other 15%",
+     "Nagpur is the orange capital of India. Cotton and soybean are major Kharif crops. Rice in irrigated pockets."],
+    ["Kolhapur", "Maharashtra", "Sugarcane",
+     "Sugarcane 55%, Rice 15%, Cashew 10%, Vegetables 10%, Other 10%",
+     "Kolhapur is known for premium sugarcane and jaggery production. Rich soil and good rainfall support diverse agriculture."],
+    ["Thane", "Maharashtra", "Rice",
+     "Rice 40%, Vegetables 25%, Pulses 15%, Other 20%",
+     "Thane district has rice cultivation in low-lying areas. Growing vegetable farming due to proximity to Mumbai."],
+    ["Aurangabad", "Maharashtra", "Cotton",
+     "Cotton 35%, Sorghum 20%, Wheat 15%, Pulses 10%, Other 20%",
+     "Aurangabad region grows cotton in black soil. Sorghum and wheat in Rabi season. Limited irrigation agriculture."],
+    ["Navi Mumbai", "Maharashtra", "Vegetables",
+     "Vegetables 45%, Rice 20%, Pulses 15%, Other 20%",
+     "Navi Mumbai peri-urban areas focus on vegetables. Rice in available wetlands. Urban agriculture limited."],
+    ["Solapur", "Maharashtra", "Sugarcane",
+     "Sugarcane 35%, Sorghum 25%, Cotton 20%, Pulses 10%, Other 10%",
+     "Solapur is known for sugarcane and jaggery. Cotton in black soil areas. Sorghum in rainfed regions."],
+    ["Bhiwandi", "Maharashtra", "Vegetables",
+     "Vegetables 50%, Rice 20%, Pulses 15%, Other 15%",
+     "Bhiwandi region has peri-urban vegetable cultivation. Rice in low-lying areas. Proximity to Mumbai markets."],
+    ["Amravati", "Maharashtra", "Cotton",
+     "Cotton 40%, Soybean 25%, Sorghum 15%, Pulses 10%, Other 10%",
+     "Amravati region grows cotton and soybean in Kharif. Sorghum in Rabi. Orange orchards in nearby areas."],
+    ["Bengaluru", "Karnataka", "Ragi",
+     "Ragi 35%, Rice 25%, Coconut 15%, Vegetables 15%, Other 10%",
+     "Bengaluru region traditionally grows ragi (finger millet). Coconut in coastal influence areas. Growing vegetable cultivation."],
+    ["Mysuru", "Karnataka", "Cotton",
+     "Cotton 30%, Maize 25%, Sugarcane 20%, Pulses 15%, Other 10%",
+     "Mysuru has mixed agriculture with cotton in black soil areas. Maize and sugarcane in irrigated areas."],
+    ["Coimbatore", "Tamil Nadu", "Cotton",
+     "Cotton 30%, Maize 25%, Coconut 20%, Vegetables 15%, Other 10%",
+     "Coimbatore is a major cotton and maize producer. Coconut in irrigated areas. Good groundwater availability."],
+    ["Chennai", "Tamil Nadu", "Rice",
+     "Rice 45%, Pulses 20%, Groundnut 15%, Other 20%",
+     "Chennai's surrounding areas grow rice in delta regions. Groundnut in rainfed areas. Pulses in dryland farming."],
+    ["Hyderabad", "Telangana", "Cotton",
+     "Cotton 35%, Maize 25%, Rice 20%, Pulses 10%, Other 10%",
+     "Telangana's major crops include cotton and maize. Rice in irrigated areas. Millets in rainfed regions."],
+    ["Lucknow", "Uttar Pradesh", "Wheat",
+     "Wheat 40%, Rice 35%, Sugarcane 15%, Pulses 5%, Other 5%",
+     "Lucknow region follows typical UP cropping pattern. Wheat and rice dominate. Sugarcane in irrigated areas."],
+    ["Kanpur", "Uttar Pradesh", "Wheat",
+     "Wheat 40%, Rice 30%, Sugarcane 15%, Pulses 10%, Other 5%",
+     "Kanpur has fertile alluvial soil supporting wheat-rice rotation. Sugarcane in peri-urban areas."],
+    ["Jaipur", "Rajasthan", "Mustard",
+     "Mustard 30%, Wheat 25%, Gram 20%, Barley 15%, Other 10%",
+     "Rajasthan's arid climate favors drought-resistant crops. Mustard is the major oilseed. Wheat in irrigated areas."],
+    ["Jodhpur", "Rajasthan", "Bajra",
+     "Bajra 40%, Mustard 20%, Wheat 15%, Gram 15%, Other 10%",
+     "Jodhpur region grows bajra (pearl millet) in rainfed areas. Mustard in winter. Limited irrigation agriculture."],
+    ["Bhopal", "Madhya Pradesh", "Soybean",
+     "Soybean 35%, Wheat 25%, Rice 20%, Gram 10%, Other 10%",
+     "MP is India's soybean heartland. Wheat and rice in irrigated areas. Gram in rainfed regions."],
+    ["Indore", "Madhya Pradesh", "Soybean",
+     "Soybean 40%, Wheat 20%, Maize 15%, Pulses 15%, Other 10%",
+     "Indore region has mixed farming. Soybean dominates Kharif. Wheat in Rabi. Maize in irrigated pockets."],
+    ["Ahmedabad", "Gujarat", "Cotton",
+     "Cotton 35%, Groundnut 25%, Wheat 20%, Vegetables 10%, Other 10%",
+     "Gujarat's cotton belt extends to Ahmedabad region. Groundnut in rainfed areas. Growing vegetable and fruit cultivation."],
+    ["Surat", "Gujarat", "Cotton",
+     "Cotton 30%, Rice 25%, Sugarcane 20%, Vegetables 15%, Other 10%",
+     "Surat region has rich agriculture due to Tapi river. Cotton in uplands. Rice in riverine areas."],
+    ["Kolkata", "West Bengal", "Rice",
+     "Rice 60%, Jute 15%, Vegetables 10%, Oilseeds 5%, Other 10%",
+     "West Bengal's delta region is rice bowl. Jute in marshy areas. Intensive vegetable cultivation."],
+    ["Patna", "Bihar", "Rice",
+     "Rice 50%, Wheat 25%, Maize 10%, Pulses 10%, Other 5%",
+     "Bihar's fertile Gangetic plains support intensive rice-wheat rotation. Maize gaining importance."],
+    ["Guwahati", "Assam", "Rice",
+     "Rice 55%, Tea 15%, Jute 10%, Vegetables 10%, Other 10%",
+     "Assam's Brahmaputra valley grows rice extensively. Tea gardens dominate uplands. Jute in marshy areas."],
+    ["Chandigarh", "Punjab", "Wheat",
+     "Wheat 45%, Rice 35%, Maize 10%, Vegetables 5%, Other 5%",
+     "Punjab's Green Revolution heartland. Wheat-rice rotation dominates. Maize in some areas."],
+    ["Ludhiana", "Punjab", "Wheat",
+     "Wheat 45%, Rice 40%, Maize 10%, Cotton 3%, Other 2%",
+     "Intensive agriculture with wheat-rice rotation. Dairy farming is also significant."],
+    ["Amritsar", "Punjab", "Wheat",
+     "Wheat 50%, Rice 30%, Wheat 15%, Vegetables 5%, Other 5%",
+     "Amritsar region follows intensive cropping. Wheat in Rabi, rice in Kharif. Wheat is the dominant crop."],
+    ["Visakhapatnam", "Andhra Pradesh", "Rice",
+     "Rice 50%, Maize 15%, Sugarcane 10%, Pulses 10%, Other 15%",
+     "Coastal Andhra grows rice extensively. Maize in uplands. Sugarcane in irrigated areas."],
+    ["Vijayawada", "Andhra Pradesh", "Rice",
+     "Rice 55%, Maize 15%, Chillies 10%, Sugarcane 10%, Other 10%",
+     "Krishna delta is rice bowl. Chillies in rainfed uplands. Sugarcane along Krishna river."],
+    ["Thiruvananthapuram", "Kerala", "Rice",
+     "Rice 35%, Coconut 25%, Rubber 20%, Spices 10%, Other 10%",
+     "Kerala's agriculture includes rice in valleys, coconut extensively, rubber plantations, and spices."],
+]
+add_sheet_data(ws_cities, cities_headers, cities_data)
+
+# Sheet 6: FAQ
+ws_faq = wb.create_sheet("FAQ")
+faq_headers = ["Intent", "Keywords", "Question", "Answer"]
+faq_data = [
+    ["irrigation", "water, irrigate, dry, drought, moisture", "Should I water my crop today?",
+     "Check the soil moisture reading in your dashboard. If below 30%, irrigation is recommended. Consider the 3-day rainfall forecast - if rain is expected within 24 hours, you can delay irrigation."],
+    ["irrigation", "water, irrigate, overwater, too much water", "Am I overwatering my crop?",
+     "Overwatering signs include yellowing leaves, root rot smell, and waterlogged soil. Soil moisture above 70% indicates overwatering. Improve drainage and reduce irrigation frequency."],
+    ["disease", "yellow leaves, disease, infection, spots, wilting", "Why are my leaves turning yellow?",
+     "Yellow leaves can indicate nutrient deficiency, overwatering, or disease. Check the latest leaf analysis for specific diagnosis. Common causes: nitrogen deficiency, root rot, or fungal infection."],
+    ["disease", "spots, lesions, brown, black, white, rot", "What are these spots on my leaves?",
+     "Leaf spots can be caused by fungal or bacterial infections. Upload a leaf image for AI diagnosis. Common culprits include Cercospora, Alternaria, and bacterial blight."],
+    ["weather", "rain, forecast, weather, climate, upcoming", "What is the weather forecast?",
+     "Check the Weather section of your dashboard for current conditions and 7-day forecast. The system provides temperature, humidity, rainfall probability, and wind speed specific to your farm location."],
+    ["weather", "rain, storm, cyclone, heavy, warning", "Heavy rain is expected. What should I do?",
+     "1. Avoid irrigation. 2. Ensure field drainage is clear. 3. Harvest ready crops. 4. Apply preventive fungicide if needed. 5. Monitor for waterlogging."],
+    ["fertilizer", "fertilizer, nutrient, NPK, manure, compost", "What fertilizer should I use?",
+     "Based on your crop and soil type, apply balanced NPK fertilizer. Use the exact quantities recommended in the crop-soil compatibility section. Organic compost improves long-term soil health."],
+    ["soil", "soil, ph, test, quality, type", "How do I test my soil?",
+     "Take soil samples from 6-8 inch depth from different field locations. Mix them and send to a local soil testing lab. Enter the results in the Soil section of your farm dashboard for personalized recommendations."],
+    ["harvest", "harvest, ready, mature, picking, timing", "When should I harvest?",
+     "Harvest timing depends on crop maturity stage. Check the Growth Stage indicator on your farm dashboard. Harvest when moisture content is optimal for your intended storage method."],
+    ["plant", "identify, what is this, plant name, species", "What plant is this?",
+     "Use the Plant Scan feature to identify any plant from a photo. The AI model will identify the plant species and provide detailed information about care requirements, diseases, and growing conditions."],
+    ["yield", "yield, production, increase, improve, better", "How can I increase my yield?",
+     "1. Follow the recommended crop-soil compatibility guidelines. 2. Monitor weather forecasts and act accordingly. 3. Use the disease prevention recommendations. 4. Apply fertilizers based on soil test results. 5. Use the Farm Plan for daily actions."],
+    ["pest", "pest, insect, bug, worm, control, pesticide", "How do I control pests?",
+     "Identify the pest through the Plant Scan feature. Follow the recommended action from the knowledge base. Consider integrated pest management: use biological controls first, then targeted pesticides if needed."],
+    ["season", "season, when to plant, sowing, planting time", "When should I plant?",
+     "Planting time depends on your crop and local climate. Kharif crops: June-July. Rabi crops: October-November. Check the Growing Season in the plant information for your specific crop."],
+    ["subscription", "plan, upgrade, pricing, cost, free", "What plans are available?",
+     "AgriSight AI offers Free (1 farm, basic features), Farmer (multiple farms, AI assistant, plant scanning), Professional (advanced analytics, unlimited scans), and Enterprise (API access, multi-farmer management) plans."],
+    ["language", "hindi, marathi, english, change language, bhasha", "How do I change the language?",
+     "Go to Settings and select your preferred language. All recommendations, alerts, and AI responses will be displayed in the selected language (English, Hindi, or Marathi)."],
+]
+add_sheet_data(ws_faq, faq_headers, faq_data)
+
+# Sheet 7: General Agriculture
+ws_general = wb.create_sheet("General Agriculture")
+general_headers = ["Topic", "Condition", "Recommendation", "Explanation"]
+general_data = [
+    ["Soil Health", "Low Organic Matter",
+     "Add compost and green manure. Practice crop rotation.",
+     "Organic matter improves soil structure, water retention, and nutrient availability. Apply 5-10 tons per hectare annually."],
+    ["Soil Health", "Acidic Soil (pH < 6.0)",
+     "Apply agricultural lime based on soil test recommendations.",
+     "Lime raises soil pH, making nutrients more available. Apply 6-12 months before planting for best results."],
+    ["Soil Health", "Alkaline Soil (pH > 8.0)",
+     "Apply sulfur or organic matter. Use acid-forming fertilizers.",
+     "Sulfur and organic matter help lower pH. Elemental sulfur takes several months to react."],
+    ["Soil Health", "Poor Drainage",
+     "Install drainage channels. Use raised beds. Improve soil structure with organic matter.",
+     "Waterlogging causes root rot and reduces yield. Subsurface drainage is most effective for long-term solution."],
+    ["Water Management", "Drought Conditions",
+     "Use drip irrigation. Apply mulch. Select drought-tolerant varieties.",
+     "Drip irrigation reduces water use by 30-50%. Mulching reduces evaporation. Drought-tolerant varieties maintain yield under stress."],
+    ["Water Management", "Excess Rainfall",
+     "Improve field drainage. Avoid nitrogen application. Monitor for diseases.",
+     "Heavy rain causes leaching of nutrients and disease spread. Drainage is the primary solution."],
+    ["Water Management", "Waterlogging",
+     "Install subsurface drainage. Use raised beds. Plant water-tolerant crops.",
+     "Waterlogging reduces oxygen to roots causing damage within hours. Immediate drainage is critical."],
+    ["Pest Management", "Early Detection",
+     "Scout fields regularly. Use pheromone traps. Apply biological controls early.",
+     "Early pest detection allows biological control before populations explode. Scout weekly during growing season."],
+    ["Pest Management", "Integrated Pest Management",
+     "Use cultural, biological, and chemical controls in combination.",
+     "IPM reduces pesticide use by 50-70% while maintaining effective pest control. Monitor pest thresholds before spraying."],
+    ["Pest Management", "Resistance Management",
+     "Rotate pesticides with different modes of action. Use refugia.",
+     "Pest resistance develops quickly with repeated use of same pesticide. Rotate modes of action annually."],
+    ["Nutrient Management", "Nitrogen Deficiency",
+     "Apply urea or ammonium sulfate. Use legume rotation.",
+     "Nitrogen deficiency causes pale leaves and stunted growth. Split nitrogen application is most efficient."],
+    ["Nutrient Management", "Phosphorus Deficiency",
+     "Apply single super phosphate or DAP. Use mycorrhizal inoculants.",
+     "Phosphorus deficiency causes purple leaves and poor root development. Phosphorus moves slowly in soil."],
+    ["Nutrient Management", "Potassium Deficiency",
+     "Apply muriate of potash. Use organic matter mulches.",
+     "Potassium deficiency causes leaf edge scorching and weak stems. Important for fruit quality and disease resistance."],
+    ["Climate Adaptation", "High Temperature",
+     "Provide shade. Increase irrigation. Use heat-tolerant varieties.",
+     "High temperature reduces pollination and grain filling. Shade nets reduce temperature by 3-5°C."],
+    ["Climate Adaptation", "Low Temperature",
+     "Use mulches for frost protection. Plant cold-tolerant varieties.",
+     "Mulches maintain soil temperature. Frost cloths provide 2-3°C protection during cold nights."],
+    ["Climate Adaptation", "Erratic Rainfall",
+     "Build rainwater harvesting structures. Use drought-resistant varieties.",
+     "Rainwater harvesting provides backup irrigation. Farm ponds and check dams are effective solutions."],
+    ["Post-Harvest", "Storage Losses",
+     "Use proper drying. Store in airtight containers. Use pest control.",
+     "Proper drying to 12-14% moisture prevents fungal growth. Hermetic storage bags prevent insect damage without chemicals."],
+    ["Post-Harvest", "Market Linkages",
+     "Join farmer producer organizations. Use digital market platforms.",
+     "Collective marketing through FPOs gives better prices. Digital platforms provide real-time market rates."],
+    ["Organic Farming", "Transition Period",
+     "Follow organic practices during 3-year transition. Use organic inputs.",
+     "Transition period requires careful management. Soil health improves gradually. Premium prices available after certification."],
+    ["Organic Farming", "Natural Pest Control",
+     "Use neem oil, trichoderma, and pheromone traps.",
+     "Natural pesticides are less persistent in environment. Neem oil at 2-5% concentration is effective against many pests."],
+]
+add_sheet_data(ws_general, general_headers, general_data)
+
+wb.save(EXCEL_PATH)
+print(f"Excel knowledge base created at: {EXCEL_PATH}")
+print(f"Sheets: {wb.sheetnames}")
