@@ -29,15 +29,25 @@ app.mount("/static/farm-photos", StaticFiles(directory="uploads/farm-photos"), n
 os.makedirs("uploads/profile-photos", exist_ok=True)
 app.mount("/static/profile-photos", StaticFiles(directory="uploads/profile-photos"), name="profile-photos")
 
-frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
-if frontend_dist.exists():
-    app.mount("/", StaticFiles(directory=str(frontend_dist), html=True), name="frontend")
+frontend_dist = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+has_frontend = frontend_dist.exists()
+
+if has_frontend:
+    assets_dir = frontend_dist / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="frontend-assets")
+
+    @app.get("/", include_in_schema=False)
+    async def serve_root():
+        return FileResponse(frontend_dist / "index.html")
 
     class SPAFallbackMiddleware(BaseHTTPMiddleware):
         async def dispatch(self, request: Request, call_next):
             response = await call_next(request)
-            if response.status_code == 404 and not request.url.path.startswith(("/api", "/static")):
-                return FileResponse(frontend_dist / "index.html")
+            if response.status_code == 404:
+                path = request.url.path
+                if not path.startswith(("/api", "/static", "/docs", "/redoc", "/openapi.json", "/assets")):
+                    return FileResponse(frontend_dist / "index.html")
             return response
 
     app.add_middleware(SPAFallbackMiddleware)
@@ -52,6 +62,11 @@ def health():
         "app": "AgriSight AI",
         "demo": settings.DEMO_MODE or weather_demo or satellite_demo,
     }
+
+
+@app.get("/api/health")
+def api_health():
+    return {"status": "ok", "service": "AgriSight AI"}
 
 
 @app.on_event("startup")
@@ -99,4 +114,3 @@ def startup():
         seed_demo_data(db)
     finally:
         db.close()
-
