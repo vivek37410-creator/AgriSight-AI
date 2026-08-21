@@ -1,7 +1,11 @@
 import os
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 from app.core.config import settings
 from app.database.session import create_all_tables, seed_demo_data
 from app.api import api_router
@@ -24,6 +28,19 @@ os.makedirs("uploads/farm-photos", exist_ok=True)
 app.mount("/static/farm-photos", StaticFiles(directory="uploads/farm-photos"), name="farm-photos")
 os.makedirs("uploads/profile-photos", exist_ok=True)
 app.mount("/static/profile-photos", StaticFiles(directory="uploads/profile-photos"), name="profile-photos")
+
+frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+if frontend_dist.exists():
+    app.mount("/", StaticFiles(directory=str(frontend_dist), html=True), name="frontend")
+
+    class SPAFallbackMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request: Request, call_next):
+            response = await call_next(request)
+            if response.status_code == 404 and not request.url.path.startswith(("/api", "/static")):
+                return FileResponse(frontend_dist / "index.html")
+            return response
+
+    app.add_middleware(SPAFallbackMiddleware)
 
 
 @app.get("/health")
