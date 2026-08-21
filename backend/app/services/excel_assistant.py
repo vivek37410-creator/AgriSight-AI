@@ -10,7 +10,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from app.core.config import settings
 
 
-_KNOWLEDGE_PATH = Path(__file__).resolve().parent.parent.parent.parent / "backend" / "app" / "knowledge" / "agrisight_knowledge.xlsx"
+_KNOWLEDGE_PATH = Path(__file__).resolve().parent.parent / "knowledge" / "agrisight_knowledge.xlsx"
 
 _STOP_WORDS = {
     "the", "and", "or", "a", "an", "is", "are", "was", "were", "be", "been", "being",

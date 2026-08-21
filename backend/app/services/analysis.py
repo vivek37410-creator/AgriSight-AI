@@ -78,7 +78,15 @@ class AnalysisService:
         risks = [water_stress, heat_stress, veg_decline, disease_risk]
 
         rec_engine = RecommendationEngine()
-        recommendations = rec_engine.generate(risks, {"farm": farm.name, "crop": crop_name})
+        recommendations = rec_engine.generate(risks, {
+            "farm": farm.name,
+            "crop": crop_name,
+            "soil_type": soil.soil_type if soil else None,
+            "weather": {
+                "current": {"temperature": weather.temperature, "humidity": weather.humidity, "rainfall": weather.rainfall} if weather else None,
+                "forecast": forecast_list,
+            } if weather or forecast_list else None,
+        })
 
         weather_source = weather.source if weather else "demo"
         satellite_source = satellite[0].source if satellite else "demo"

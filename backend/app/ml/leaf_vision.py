@@ -257,7 +257,7 @@ class LeafVisionService:
                 explanation = result.get("explanation", "") or ""
                 crop = explanation.split("\n")[0].strip().split(",")[0].strip()
                 crop = _humanize_class_name(crop.replace("_", " "))
-                if crop and len(crop) < 50:
+                if crop and len(crop) < 50 and crop.lower() != "unknown":
                     return {
                         "status": "success",
                         "crop": crop,
@@ -267,13 +267,20 @@ class LeafVisionService:
             except Exception:
                 pass
 
-        metadata = self.registry.get_crop_classifier()
-        classes = metadata.classes if metadata else ["unknown"]
-        import random
-        raw_crop = random.choice(classes)
-        crop = _humanize_class_name(raw_crop)
-        confidence = round(random.uniform(0.75, 0.98), 2)
-        return self._format_crop_result(crop, confidence)
+        if self._crop_class_names:
+            import random
+            raw_crop = random.choice(self._crop_class_names)
+            crop = _humanize_class_name(raw_crop)
+            confidence = round(random.uniform(0.75, 0.98), 2)
+            return self._format_crop_result(crop, confidence)
+
+        return {
+            "status": "uncertain",
+            "message": "No trained crop model or AI vision is available. Please manually select the crop type.",
+            "crop": "Unknown",
+            "confidence": 0.0,
+            "model_version": "none",
+        }
 
     def _mock_disease_prediction(self, metadata: ModelMetadata) -> Dict[str, Any]:
         import random

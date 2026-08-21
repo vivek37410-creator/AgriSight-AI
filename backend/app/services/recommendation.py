@@ -1,9 +1,14 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+
+from app.services.crop_soil_recommendation import CropSoilRecommendationService
 
 
 class RecommendationEngine:
+    def __init__(self) -> None:
+        self._crop_soil_service = CropSoilRecommendationService()
+
     def generate(self, risk_assessments: List[Dict[str, Any]], farm_context: Dict[str, Any]) -> List[Dict[str, Any]]:
-        recommendations = []
+        recommendations: List[Dict[str, Any]] = []
         priority_map = {"HIGH": "CRITICAL", "MODERATE": "MEDIUM", "LOW": "LOW"}
 
         for risk in risk_assessments:
@@ -15,6 +20,23 @@ class RecommendationEngine:
             if level in ("HIGH", "MODERATE"):
                 rec = self._build_recommendation(risk_type, level, explanation, condition=condition)
                 recommendations.append(rec)
+
+        crop = farm_context.get("crop")
+        soil_type = farm_context.get("soil_type")
+        if crop:
+            crop_recs = self._crop_soil_service.get_crop_soil_recommendations(crop, soil_type)
+            recommendations.extend(crop_recs)
+            weather = farm_context.get("weather")
+            weather_recs = self._crop_soil_service.get_weather_recommendations(crop, weather)
+            recommendations.extend(weather_recs)
+
+        if not recommendations and crop:
+            recommendations.append({
+                "priority": "LOW",
+                "title": "Farm Setup Looks Good",
+                "recommendation": f"Your {crop} farm is set up. Run an analysis after adding soil and weather data for personalized recommendations.",
+                "reasoning": "No immediate risk indicators detected based on available farm data.",
+            })
 
         recommendations.sort(key=lambda x: {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}.get(x["priority"], 4))
         return recommendations

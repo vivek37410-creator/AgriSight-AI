@@ -9,7 +9,7 @@ import './index.css'
 
 const queryClient = new QueryClient()
 
-const theme = (localStorage.getItem('agrisight-theme') as 'light' | 'dark' | null) ?? 'light'
+const theme = (localStorage.getItem('agrisight-theme') as 'light' | 'dark' | null) ?? 'dark'
 if (theme === 'dark') {
   document.documentElement.classList.add('dark')
 } else {

@@ -8,7 +8,7 @@ import random
 
 random.seed(42)
 
-OUTPUT = "C:/Users/DELL/file/OneDrive/Desktop/PROJECT/AgriPlus AI/backend/app/knowledge/agrisight_knowledge.xlsx"
+OUTPUT = Path(__file__).resolve().parent / "app" / "knowledge" / "agrisight_knowledge.xlsx"
 
 wb = openpyxl.Workbook()
 ws = wb.active
