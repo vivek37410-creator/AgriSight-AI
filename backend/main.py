@@ -62,7 +62,9 @@ def startup():
     from sqlalchemy import text
     db = SessionLocal()
     try:
-        db.execute(text("ALTER TABLE farms ADD COLUMN IF NOT EXISTS photo_url VARCHAR"))
+        cols = [r[1] for r in db.execute(text("PRAGMA table_info(farms)")).fetchall()]
+        if "photo_url" not in cols:
+            db.execute(text("ALTER TABLE farms ADD COLUMN photo_url VARCHAR"))
         db.commit()
     except Exception:
         db.rollback()
@@ -70,15 +72,11 @@ def startup():
         db.close()
     db = SessionLocal()
     try:
-        db.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo VARCHAR"))
-        db.commit()
-    except Exception:
-        db.rollback()
-    finally:
-        db.close()
-    db = SessionLocal()
-    try:
-        db.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed BOOLEAN DEFAULT FALSE"))
+        cols = [r[1] for r in db.execute(text("PRAGMA table_info(users)")).fetchall()]
+        if "profile_photo" not in cols:
+            db.execute(text("ALTER TABLE users ADD COLUMN profile_photo VARCHAR"))
+        if "profile_completed" not in cols:
+            db.execute(text("ALTER TABLE users ADD COLUMN profile_completed BOOLEAN DEFAULT FALSE"))
         db.commit()
     except Exception:
         db.rollback()
