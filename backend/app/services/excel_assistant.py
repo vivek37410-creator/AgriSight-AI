@@ -124,15 +124,27 @@ class ExcelAssistantService:
 
     def _load_knowledge(self):
         if not self.knowledge_path.exists():
-            raise FileNotFoundError(f"Knowledge base not found at {self.knowledge_path}")
-        wb = openpyxl.load_workbook(self.knowledge_path, read_only=True, data_only=True)
-        ws = wb.active if "FAQ" not in wb.sheetnames else wb["FAQ"]
-        rows = list(ws.iter_rows(min_row=2, values_only=True))
-        wb.close()
-        self._entries = [KnowledgeEntry(r) for r in rows if any(r)]
-        corpus = [self._preprocess(e.to_search_text()) for e in self._entries]
-        self._vectorizer = TfidfVectorizer(ngram_range=(1, 2), max_features=5000)
-        self._tfidf_matrix = self._vectorizer.fit_transform(corpus)
+            self._entries = []
+            self._vectorizer = None
+            self._tfidf_matrix = None
+            return
+        try:
+            wb = openpyxl.load_workbook(self.knowledge_path, read_only=True, data_only=True)
+            ws = wb.active if "FAQ" not in wb.sheetnames else wb["FAQ"]
+            rows = list(ws.iter_rows(min_row=2, values_only=True))
+            wb.close()
+            self._entries = [KnowledgeEntry(r) for r in rows if any(r)]
+            if not self._entries:
+                self._vectorizer = None
+                self._tfidf_matrix = None
+                return
+            corpus = [self._preprocess(e.to_search_text()) for e in self._entries]
+            self._vectorizer = TfidfVectorizer(ngram_range=(1, 2), max_features=5000)
+            self._tfidf_matrix = self._vectorizer.fit_transform(corpus)
+        except Exception:
+            self._entries = []
+            self._vectorizer = None
+            self._tfidf_matrix = None
 
     def reload(self):
         self._load_knowledge()

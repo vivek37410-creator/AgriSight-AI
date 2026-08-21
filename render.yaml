@@ -6,6 +6,7 @@ services:
     buildCommand: |
       cd backend && pip install --no-cache-dir -r requirements.txt
       cd backend && python generate_knowledge.py
+      cd backend && python generate_excel.py
       cd ../frontend && npm ci && npm run build
     startCommand: cd backend && python -m uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:

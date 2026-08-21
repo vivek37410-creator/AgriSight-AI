@@ -208,22 +208,33 @@ export default function LeafDoctor() {
 
       {result && result.status === 'success' && (
         <div className="space-y-4">
-          <Card className="border-green-100 dark:border-green-900 bg-green-50/60 dark:bg-green-900/20">
+          <Card className={result.crop === 'Unknown' || (result.crop_confidence && result.crop_confidence < 0.5) ? 'border-amber-100 dark:border-amber-900 bg-amber-50/60 dark:bg-amber-900/20' : 'border-green-100 dark:border-green-900 bg-green-50/60 dark:bg-green-900/20'}>
             <CardContent className="p-5">
               <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                {result.crop === 'Unknown' || (result.crop_confidence && result.crop_confidence < 0.5) ? (
+                  <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                ) : (
+                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                )}
                 <div className="space-y-2 w-full">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-lg font-bold text-green-900 dark:text-green-100">{t('Analysis Complete')}</h3>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      {result.crop === 'Unknown' || (result.crop_confidence && result.crop_confidence < 0.5) ? t('Analysis Complete') : t('Analysis Complete')}
+                    </h3>
                     {severityBadge(result.severity)}
                   </div>
+                  {(result.crop === 'Unknown' || (result.crop_confidence && result.crop_confidence < 0.5)) && (
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                      {t('Crop could not be confidently identified. Disease analysis was still performed. For better results, manually select the crop type above.')}
+                    </p>
+                  )}
                    <div className="grid grid-cols-2 gap-3 text-sm">
-                     <div><span className="text-gray-500 dark:text-gray-400">{t('Crop')}:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{result.crop}</span></div>
-                     <div><span className="text-gray-500 dark:text-gray-400">{t('Condition')}:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{result.condition?.replace(/_/g, ' ')}</span></div>
-                     <div><span className="text-gray-500 dark:text-gray-400">{t('Crop Confidence')}:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{result.crop_confidence ? `${(result.crop_confidence * 100).toFixed(1)}%` : 'N/A'}</span></div>
-                     <div><span className="text-gray-500 dark:text-gray-400">{t('Health')}:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{result.health_status}</span></div>
-                     <div><span className="text-gray-500 dark:text-gray-400">{t('Model')}:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{result.model_version}</span></div>
-                   </div>
+                      <div><span className="text-gray-500 dark:text-gray-400">{t('Crop')}:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{result.crop}</span></div>
+                      <div><span className="text-gray-500 dark:text-gray-400">{t('Condition')}:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{result.condition?.replace(/_/g, ' ')}</span></div>
+                      <div><span className="text-gray-500 dark:text-gray-400">{t('Crop Confidence')}:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{result.crop_confidence ? `${(result.crop_confidence * 100).toFixed(1)}%` : 'N/A'}</span></div>
+                      <div><span className="text-gray-500 dark:text-gray-400">{t('Health')}:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{result.health_status}</span></div>
+                      <div><span className="text-gray-500 dark:text-gray-400">{t('Model')}:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{result.model_version}</span></div>
+                    </div>
                 </div>
               </div>
             </CardContent>

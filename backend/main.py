@@ -46,7 +46,7 @@ if has_frontend:
             response = await call_next(request)
             if response.status_code == 404:
                 path = request.url.path
-                if not path.startswith(("/api", "/static", "/docs", "/redoc", "/openapi.json", "/assets")):
+                if not path.startswith(("/api", "/static", "/docs", "/redoc", "/openapi.json", "/assets", "/videos")):
                     return FileResponse(frontend_dist / "index.html")
             return response
 

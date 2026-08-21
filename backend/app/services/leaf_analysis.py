@@ -400,17 +400,13 @@ class LeafAnalysisService:
             if gemini_crop:
                 analysis_result = self.vision.analyze(file_bytes, crop_override=gemini_crop, filename=filename)
             else:
-                record = LeafAnalysis(
-                    user_id=user.id,
-                    farm_id=farm_id,
-                    image_url=image_url,
-                    status="uncertain",
-                    error_message=analysis_result.get("message", "Could not identify crop."),
-                    created_at=datetime.now(timezone.utc),
-                )
-                db.add(record)
-                db.commit()
-                return analysis_result
+                analysis_result["status"] = "success"
+                analysis_result["crop"] = analysis_result.get("crop") or "Unknown"
+                analysis_result["crop_confidence"] = 0.0
+                analysis_result["condition"] = analysis_result.get("condition") or "healthy"
+                analysis_result["disease_confidence"] = 0.0
+                analysis_result["model_version"] = analysis_result.get("model_version") or "fallback"
+                analysis_result["low_confidence"] = True
 
         if analysis_result.get("status") != "success":
             record = LeafAnalysis(
@@ -431,6 +427,7 @@ class LeafAnalysisService:
         disease_confidence = analysis_result.get("disease_confidence")
         model_version = analysis_result.get("model_version")
         crop_model_version = analysis_result.get("crop_model_version")
+        low_confidence = analysis_result.get("low_confidence", False)
 
         farm_context = self._get_farm_context(farm_id, db)
         weather = self._get_weather_context(farm_id, db)
@@ -566,4 +563,5 @@ class LeafAnalysisService:
             "latitude": latitude,
             "longitude": longitude,
             "weather_source": weather.get("source") if isinstance(weather, dict) else None,
+            "low_confidence": low_confidence,
         }

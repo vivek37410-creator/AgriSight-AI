@@ -212,19 +212,12 @@ class LeafVisionService:
         }
 
     def _format_crop_result(self, crop: str, confidence: float) -> Dict[str, Any]:
-        if confidence < CROP_CONFIDENCE_THRESHOLD:
-            return {
-                "status": "uncertain",
-                "message": "We could not confidently identify this crop from trained data. Please try a clearer image or manually select the crop type.",
-                "crop": crop,
-                "confidence": confidence,
-                "model_version": "trained_pytorch",
-            }
         return {
             "status": "success",
             "crop": crop,
             "confidence": confidence,
             "model_version": "trained_pytorch",
+            "low_confidence": confidence < CROP_CONFIDENCE_THRESHOLD,
         }
 
     def _format_disease_result(self, condition: str, confidence: float, metadata: ModelMetadata) -> Dict[str, Any]:
