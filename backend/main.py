@@ -28,7 +28,13 @@ app.mount("/static/profile-photos", StaticFiles(directory="uploads/profile-photo
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "app": "AgriSight AI"}
+    weather_demo = settings.WEATHER_PROVIDER not in ("open_meteo",)
+    satellite_demo = settings.SATELLITE_PROVIDER not in ("copernicus",)
+    return {
+        "status": "ok",
+        "app": "AgriSight AI",
+        "demo": settings.DEMO_MODE or weather_demo or satellite_demo,
+    }
 
 
 @app.on_event("startup")

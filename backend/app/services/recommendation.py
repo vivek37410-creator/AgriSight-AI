@@ -26,7 +26,6 @@ class RecommendationEngine:
                 "title": "Irrigation Review Required",
                 "recommendation": "Inspect irrigation conditions and prioritize the affected farm zone within the next 24-48 hours.",
                 "reasoning": explanation,
-                "demo": True,
             }
         elif risk_type == "HEAT_STRESS":
             return {
@@ -34,7 +33,6 @@ class RecommendationEngine:
                 "title": "Heat Stress Alert",
                 "recommendation": "Monitor crop condition during peak heat hours and review irrigation availability where applicable.",
                 "reasoning": explanation,
-                "demo": True,
             }
         elif risk_type == "VEGETATION_DECLINE":
             return {
@@ -42,7 +40,6 @@ class RecommendationEngine:
                 "title": "Vegetation Health Review",
                 "recommendation": "Review recent field observations and consider soil testing or agronomic consultation.",
                 "reasoning": explanation,
-                "demo": True,
             }
         elif risk_type == "DISEASE_RISK":
             return {
@@ -50,7 +47,6 @@ class RecommendationEngine:
                 "title": "Disease Risk Advisory",
                 "recommendation": "Inspect crop leaves for symptoms and consult an agronomist before applying treatment.",
                 "reasoning": explanation,
-                "demo": True,
             }
         elif risk_type == "LEAF_DISEASE_RISK":
             cond = (condition or "").replace("_", " ").title()
@@ -59,7 +55,6 @@ class RecommendationEngine:
                 "title": f"Leaf Disease Advisory: {cond}" if cond else "Leaf Disease Advisory",
                 "recommendation": f"Inspect leaves for {cond.lower() if cond else 'symptoms'} and consult an agronomist before applying any treatment. Remove heavily infected leaves if safe to do so.",
                 "reasoning": explanation,
-                "demo": True,
             }
         else:
             return {
@@ -67,5 +62,4 @@ class RecommendationEngine:
                 "title": "General Advisory",
                 "recommendation": "Review farm conditions and consult an agronomist if needed.",
                 "reasoning": explanation,
-                "demo": True,
             }

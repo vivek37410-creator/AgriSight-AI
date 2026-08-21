@@ -9,7 +9,6 @@ class VegetationDeclineEngine:
                 "risk_level": "LOW",
                 "score": 0.0,
                 "explanation": "Insufficient satellite observation history to assess vegetation trend.",
-                "demo": True,
             }
 
         ndvis = [float(h.get("ndvi", 0) or 0) for h in ndvi_history if h.get("ndvi") is not None]
@@ -19,7 +18,6 @@ class VegetationDeclineEngine:
                 "risk_level": "LOW",
                 "score": 0.0,
                 "explanation": "Insufficient valid NDVI data to assess trend.",
-                "demo": True,
             }
 
         recent = ndvis[-1]
@@ -62,5 +60,4 @@ class VegetationDeclineEngine:
             "risk_level": level,
             "score": round(score, 1),
             "explanation": explanation,
-            "demo": True,
         }

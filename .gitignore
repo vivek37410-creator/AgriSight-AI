@@ -40,6 +40,11 @@ Thumbs.db
 # Excel knowledge base (large file - optional)
 *.xlsx
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
 # Testing
 .pytest_cache/
 .coverage

@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     DEMO_MODE: bool = False
     ENVIRONMENT: str = "development"
     WEATHER_PROVIDER: str = "open_meteo"
-    SATELLITE_PROVIDER: str = "mock"
+    SATELLITE_PROVIDER: str = "copernicus"
     COPERNICUS_CLIENT_ID: str = ""
     COPERNICUS_CLIENT_SECRET: str = ""
     AI_PROVIDER: str = "mock"
@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = ""
     SUPABASE_ANON_KEY: str = ""
     SUPABASE_SERVICE_ROLE_KEY: str = ""
-    PAYMENT_PROVIDER: str = "mock"
+    PAYMENT_PROVIDER: str = "stripe"
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
     STRIPE_PRICE_FARMER: str = ""

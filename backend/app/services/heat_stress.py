@@ -57,5 +57,4 @@ class HeatStressEngine:
             "risk_level": level,
             "score": round(score, 1),
             "explanation": explanation,
-            "demo": True,
         }

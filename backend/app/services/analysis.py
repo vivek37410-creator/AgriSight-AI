@@ -80,6 +80,16 @@ class AnalysisService:
         rec_engine = RecommendationEngine()
         recommendations = rec_engine.generate(risks, {"farm": farm.name, "crop": crop_name})
 
+        weather_source = weather.source if weather else "demo"
+        satellite_source = satellite[0].source if satellite else "demo"
+        demo = (weather_source == "demo" or satellite_source == "demo")
+
+        for risk in risks:
+            risk["demo"] = demo
+
+        for rec in recommendations:
+            rec["demo"] = demo
+
         health_score = HealthScore(
             farm_id=farm_id,
             health_score=health["health_score"],
@@ -137,5 +147,5 @@ class AnalysisService:
             "satellite_observations": satellite_list,
             "weather": {"current": weather.__dict__ if weather else None, "forecast": forecast_list},
             "soil": soil.__dict__ if soil else None,
-            "demo": True,
+            "demo": demo,
         }
