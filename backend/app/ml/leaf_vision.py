@@ -6,9 +6,14 @@ from pathlib import Path
 
 from PIL import Image
 import numpy as np
-import torch
-import torch.nn as nn
-from torchvision import transforms, models
+
+try:
+    import torch
+    import torch.nn as nn
+    from torchvision import transforms, models
+    _TORCH_AVAILABLE = True
+except ImportError:
+    _TORCH_AVAILABLE = False
 
 from app.ml.model_registry import CropModelRegistry, ModelMetadata, get_model_registry
 from app.providers.ai import LLMProvider, MockAIProvider
@@ -45,6 +50,9 @@ class LeafVisionService:
         self._load_disease_models()
 
     def _load_plant_classifier(self) -> None:
+        if not _TORCH_AVAILABLE:
+            logger.warning("PyTorch is not installed. Plant classifier will use fallback predictions.")
+            return
         metadata = self.registry.get_crop_classifier()
         if not metadata:
             return
@@ -68,6 +76,9 @@ class LeafVisionService:
             self._crop_class_names = []
 
     def _load_disease_models(self) -> None:
+        if not _TORCH_AVAILABLE:
+            logger.warning("PyTorch is not installed. Disease models will use fallback predictions.")
+            return
         for crop_name, metadata in self.registry.crop_models.items():
             model_path = _MODELS_DIR / f"{metadata.model_name}.pt"
             class_path = _MODELS_DIR / f"{metadata.model_name}_classes.txt"
