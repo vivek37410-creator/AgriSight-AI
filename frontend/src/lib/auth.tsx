@@ -46,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(data.access_token)
     const me = await api.get('/auth/me')
     setUser(me.data)
+    localStorage.removeItem('agrisight_tour_completed')
   }
 
   const logout = () => {
