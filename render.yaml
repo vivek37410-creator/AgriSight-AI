@@ -1,7 +1,7 @@
 services:
   - type: web
     name: agrisight-ai
-    runtime: python-3.11
+    runtime: python
     plan: free
     buildCommand: |
       cd backend && pip install --no-cache-dir -r requirements.txt
