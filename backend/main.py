@@ -37,6 +37,12 @@ if has_frontend:
     if assets_dir.exists():
         app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="frontend-assets")
 
+    public_dir = Path(__file__).resolve().parent.parent / "frontend" / "public"
+    if public_dir.exists():
+        videos_dir = public_dir / "videos"
+        if videos_dir.exists():
+            app.mount("/videos", StaticFiles(directory=str(videos_dir)), name="public-videos")
+
     @app.get("/", include_in_schema=False)
     async def serve_root():
         return FileResponse(frontend_dist / "index.html")

@@ -248,6 +248,8 @@ class LeafVisionService:
                     prompt="Identify the plant/crop from this leaf image. Return ONLY the exact plant name. Do not make up names. If unsure, return 'Unknown'."
                 )
                 explanation = result.get("explanation", "") or ""
+                if "does not support image input" in explanation.lower() or "cannot read" in explanation.lower():
+                    raise ValueError("Gemini image input not supported")
                 crop = explanation.split("\n")[0].strip().split(",")[0].strip()
                 crop = _humanize_class_name(crop.replace("_", " "))
                 if crop and len(crop) < 50 and crop.lower() != "unknown":

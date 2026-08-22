@@ -4,8 +4,13 @@ from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
 
 import openpyxl
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+    _SKLEARN_AVAILABLE = True
+except ImportError:
+    _SKLEARN_AVAILABLE = False
 
 from app.core.config import settings
 
@@ -111,9 +116,26 @@ class ExcelAssistantService:
     def __init__(self, knowledge_path: Optional[str] = None):
         self.knowledge_path = Path(knowledge_path) if knowledge_path else _KNOWLEDGE_PATH
         self._entries: List[KnowledgeEntry] = []
-        self._vectorizer: Optional[TfidfVectorizer] = None
+        self._vectorizer = None
         self._tfidf_matrix = None
+        self._corpus: List[str] = []
         self._load_knowledge()
+
+    def _tokenize(self, text: str) -> List[str]:
+        return [t for t in text.split() if t not in _STOP_WORDS and len(t) > 2]
+
+    def _simple_similarity(self, query: str, corpus: List[str]) -> List[float]:
+        query_tokens = set(self._tokenize(query))
+        scores = []
+        for doc in corpus:
+            doc_tokens = set(self._tokenize(doc))
+            if not query_tokens or not doc_tokens:
+                scores.append(0.0)
+                continue
+            intersection = query_tokens & doc_tokens
+            union = query_tokens | doc_tokens
+            scores.append(len(intersection) / len(union) if union else 0.0)
+        return scores
 
     def _preprocess(self, text: str) -> str:
         text = text.lower()
@@ -139,12 +161,18 @@ class ExcelAssistantService:
                 self._tfidf_matrix = None
                 return
             corpus = [self._preprocess(e.to_search_text()) for e in self._entries]
-            self._vectorizer = TfidfVectorizer(ngram_range=(1, 2), max_features=5000)
-            self._tfidf_matrix = self._vectorizer.fit_transform(corpus)
+            if _SKLEARN_AVAILABLE:
+                self._vectorizer = TfidfVectorizer(ngram_range=(1, 2), max_features=5000)
+                self._tfidf_matrix = self._vectorizer.fit_transform(corpus)
+            else:
+                self._vectorizer = None
+                self._tfidf_matrix = None
+                self._corpus = corpus
         except Exception:
             self._entries = []
             self._vectorizer = None
             self._tfidf_matrix = None
+            self._corpus = []
 
     def reload(self):
         self._load_knowledge()
@@ -158,8 +186,23 @@ class ExcelAssistantService:
             }
 
         processed_query = self._preprocess(question)
-        query_vec = self._vectorizer.transform([processed_query])
-        similarities = cosine_similarity(query_vec, self._tfidf_matrix)[0]
+
+        if _SKLEARN_AVAILABLE and self._vectorizer is not None and self._tfidf_matrix is not None:
+            query_vec = self._vectorizer.transform([processed_query])
+            similarities = cosine_similarity(query_vec, self._tfidf_matrix)[0]
+        elif self._corpus:
+            similarities = self._simple_similarity(processed_query, self._corpus)
+        else:
+            return {
+                "success": False,
+                "answer": "I couldn't find a reliable answer in the AgriSight knowledge base.\n\nPlease try asking about:\n• Crop diseases\n• Irrigation\n• Soil\n• Fertilizers\n• Pests\n• Weather\n• Crop growth",
+                "confidence": 0.0,
+                "category": None,
+                "topic": None,
+                "crop": crop,
+                "recommendation": None,
+                "severity": None,
+            }
 
         scored: List[Tuple[float, int]] = []
         for idx, entry in enumerate(self._entries):
