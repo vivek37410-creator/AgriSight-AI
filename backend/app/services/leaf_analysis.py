@@ -473,10 +473,14 @@ class LeafAnalysisService:
                     ext = Path(filename).suffix.lower()
                     mime_map = {'.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp'}
                     mime_type = mime_map.get(ext, 'image/jpeg')
-                    gemini_result = ai_service.provider.generate_image_explanation(file_bytes, mime_type=mime_type)
-                    if gemini_result and gemini_result.get("explanation"):
-                        training_text = gemini_result.get("explanation")
-                        recommendation_source = "gemini"
+                    try:
+                        gemini_result = ai_service.provider.generate_image_explanation(file_bytes, mime_type=mime_type)
+                        explanation = gemini_result.get("explanation", "") or ""
+                        if explanation and "cannot read" not in explanation.lower() and "does not support image input" not in explanation.lower():
+                            training_text = explanation
+                            recommendation_source = "gemini"
+                    except Exception:
+                        pass
         except Exception:
             pass
 
