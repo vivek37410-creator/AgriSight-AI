@@ -4,11 +4,15 @@ services:
     runtime: python
     plan: free
     buildCommand: |
-      cd backend && pip install --no-cache-dir -r requirements.txt
-      cd backend && python generate_knowledge.py
-      cd backend && python generate_excel.py
-      cd backend && python generate_leaf_excel.py
-      cd ../frontend && npm ci && npm run build
+      cd backend
+      pip install --no-cache-dir -r requirements.txt
+      python generate_knowledge.py
+      python generate_excel.py
+      python generate_leaf_excel.py
+      python generate_farm_validation.py
+      cd ../frontend
+      npm ci
+      npm run build
     startCommand: cd backend && python -m uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useLocation } from 'react-router-dom'
-import { ArrowLeft, Loader2, AlertTriangle, MapPin, Calendar, Droplets, Sprout, Cloud, Satellite, FileText, Lightbulb, Pencil, Save, X, TrendingUp, TrendingDown, Minus, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, AlertTriangle, MapPin, Calendar, Droplets, Sprout, Cloud, Satellite, FileText, Lightbulb, Pencil, Save, X, TrendingUp, TrendingDown, Minus, CheckCircle, Play } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../components/ui/Button'
 import { Card, CardContent, CardHeader } from '../components/ui/Card'
@@ -8,7 +8,7 @@ import { Badge } from '../components/ui/Badge'
 import { getFarm, updateFarm, validateFarm } from '../services/farms'
 import { getWeather } from '../services/weather'
 import { getLatestSatellite } from '../services/satellite'
-import { getHealth } from '../services/analysis'
+import { getHealth, analyzeFarm } from '../services/analysis'
 import { FarmValidation } from '../types/farm'
 import { formatDate, formatPercent, formatArea } from '../utils/formatters'
 import FarmBoundaryMap from '../components/FarmBoundaryMap'
@@ -25,6 +25,8 @@ export default function FarmDetail() {
   const [editingBoundary, setEditingBoundary] = useState(false)
   const [savingBoundary, setSavingBoundary] = useState(false)
   const [validation, setValidation] = useState<FarmValidation | null>(null)
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analysisMessage, setAnalysisMessage] = useState<string | null>(null)
   const initialValidation = (location.state as any)?.validation as FarmValidation | null
 
   useEffect(() => {
@@ -74,6 +76,23 @@ export default function FarmDetail() {
   }
 
   const TrendIcon = health ? (health.health_score >= 75 ? TrendingUp : health.health_score >= 50 ? TrendingDown : Minus) : Minus
+
+  const handleAnalyze = async () => {
+    if (!id) return
+    setAnalyzing(true)
+    setAnalysisMessage(null)
+    try {
+      await analyzeFarm(Number(id))
+      setAnalysisMessage('Analysis complete. Recommendations have been updated.')
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
+    } catch (err) {
+      setAnalysisMessage('Analysis failed. Please try again.')
+    } finally {
+      setAnalyzing(false)
+    }
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -253,7 +272,15 @@ export default function FarmDetail() {
                 <p className="text-sm text-surface-700">{t('Loading recommendations...')}</p>
               </div>
             )}
+            {analysisMessage && (
+              <div className={`rounded-xl border-l-4 p-4 ${analysisMessage.includes('complete') ? 'border-l-green-500 bg-green-50' : 'border-l-red-500 bg-red-50'}`}>
+                <p className="text-sm text-surface-700">{analysisMessage}</p>
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
+              <Button size="sm" onClick={handleAnalyze} loading={analyzing} icon={<Play className="h-4 w-4" />}>
+                {analyzing ? 'Analyzing...' : 'Analyze Farm'}
+              </Button>
               <Link to={`/farms/${farm.id}/analytics`}><Button size="sm" icon={<FileText className="h-4 w-4" />}>{t('Analytics')}</Button></Link>
               <Link to={`/farms/${farm.id}/satellite`}><Button size="sm" variant="outline" icon={<Satellite className="h-4 w-4" />}>{t('Satellite')}</Button></Link>
               <Link to={`/farms/${farm.id}/recommendations`}><Button size="sm" variant="outline" icon={<Lightbulb className="h-4 w-4" />}>{t('Recommendations')}</Button></Link>
